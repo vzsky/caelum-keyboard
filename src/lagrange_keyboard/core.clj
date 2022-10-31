@@ -44,21 +44,18 @@
 (def interference-test-build? false)
 (def thumb-test-build? false)
 (def key-test-build? false)
-(def key-test-range [1 2, 4 4])
+(def key-test-range [0 0, 4 6])
 
 ;; Main section parameters.
 
-(def row-count 5)
+(def row-count 4)
 (def column-count 6)
 
 ;; The radius, in mm, for each column, or for each row.
 
-(def row-radius 235)
+(def row-radius 500)
 (def column-radius #(case %
-                      (0 1) 65
-                      2 69
-                      3 66
-                      55))
+                      500))
 
 ;; The spacing between rows, in mm, for each column and between
 ;; successive columns.
@@ -89,23 +86,24 @@
 
 (def column-offset #(case %
                       (0 1) 0
-                      2 8
+                      2 5
                       3 0
-                      -14))
+                      -5))
 
 (def column-height #(case %
                       (0 1) 0
-                      2 -5
+                      2 -3
                       3 0
-                      7))
+                      3))
 
 ;; The key scale of the outer columns.
 
-(def last-column-scale 3/2)
+(def last-column-scale 1)
 
 ;; Palm key location tuning offsets, in mm.
 
-(def palm-key-offset [0 -1 -3])
+(def palm-key-offset [0 -2 -3])
+(def palm-key-rotation (/ π 5))
 
 ;; Key plate (i.e. switch mount) parameters.
 
@@ -158,7 +156,7 @@
 
 ;; Height offset for the whole keyboard.
 
-(def global-z-offset 0)
+(def global-z-offset 15)
 
 ;; Case-related parameters.
 
@@ -1099,7 +1097,7 @@
                           (->> %
                                (translate-xyz palm-key-offset)
                                (translate-xyz [0 (* -1/2 plate-size) 0])
-                               (rotate-x (/ π 2))
+                               (rotate-x palm-key-rotation)
                                (translate-xyz [0 (* 1/2 plate-size) 0]))
                           %)]
 
