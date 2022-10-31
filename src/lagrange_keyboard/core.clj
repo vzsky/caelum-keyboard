@@ -31,9 +31,9 @@
 
 ;; General parameters.
 
-(def place-keycaps? false)
+(def place-keycaps? true)
 (def keys-depressed? false)
-(def place-keyswitches? false)
+(def place-keyswitches? true)
 (def place-pcb? false)
 (def draft? true)
 (def mock-threads? true)
@@ -69,7 +69,7 @@
 (def column-spacing #(case %
                        0 2
                        1 0
-                       2 9/2
+                       2 4
                        3 5
                        3))
 
@@ -86,13 +86,13 @@
 
 (def column-offset #(case %
                       (0 1) 0
-                      2 5
+                      2 1
                       3 0
-                      -5))
+                      -8))
 
 (def column-height #(case %
                       (0 1) 0
-                      2 -3
+                      2 -4
                       3 0
                       3))
 
@@ -121,42 +121,43 @@
 
 ;; Thumb section parameters.
 
-(def thumb-offset [5 -12 11])  ; Tuning offsets for the whole thumb section, in mm.
+(def thumb-shape [2, 2])
 
-(def thumb-radius 68)
-(def thumb-slant 0.85)         ; The degree of downward slant.
-(def thumb-key-scale 5/4)      ; The scale of the top-inner key of the thumb cluster.
+(def thumb-offset [5 -12 1])  ; Tuning offsets for the whole thumb section, in mm.
+
+(def thumb-radius 60)
+(def thumb-slant 0.35)         ; The degree of downward slant.
+(def thumb-key-scale 1)      ; The scale of the top-inner key of the thumb cluster.
 
 ;; Per-key phase along the baseline arc, in units of keys, as a pair
 ;; of numbers: initial phase and per-key phase increment.
 
 (defn thumb-key-phase [column row]
-  (case row
-    (1 2) (degrees -37/2 111/2)
-    (degrees (if (zero? column) 12 10) 55/2)))
+  (case row 
+    0 (degrees 15 20)
+    1 (degrees 5 25)))
 
 ;; Per-key offset from the baseline arc, in mm.
 
 (defn thumb-key-offset [column row]
   (case row
-    1 [0 -20 -8]
-    2 [0 -42 -16]
-    (case column
-      0 [0 (* keycap-length 1/2 (- 3/2 thumb-key-scale)) 0]
-      3 [0 -4 0]
-      [0 0 0])))
+    0 (case column
+      0 [0 -5 0]
+      1 [-5 -5 0])
+    1 (case column
+      0 [0 -30 -7]
+      1 [-12 -30 -7])))
 
 ;; Per-key vertical slope.
 
 (defn thumb-key-slope [column row]
-  (case row
-    1 (degrees 33)
-    2 (degrees 6)
-    0))
+  (case row 
+    0 (degrees 12)
+    1 (degrees 30)))
 
 ;; Height offset for the whole keyboard.
 
-(def global-z-offset 15)
+(def global-z-offset 20)
 
 ;; Case-related parameters.
 
@@ -175,36 +176,25 @@
 ;; enough to clear the outer wall, but this can be tuned via the
 ;; optional parameters.
 
-(def screw-bosses [[[:key, 5 3, 1 -1]      ; Right side
-                    [:key, 5 3, 1 1]
-                    [5/8 1]]
+(def screw-bosses [
+  
+                   [[:key, 5 2, 1 -1]      ; Right side
+                    [:key, 5 3, 1 1]]
 
                    [[:key, 5 0, 1 1]
                     [:key, 5 0, 1 -1]]
 
-                   [[:key, 4 0, 0 1]       ; Top side
-                    [:key, 4 0, 1/2 1]]
-
-                   [[:key, 2 0, 0 1]
+                   [[:key, 2 0, 0 1]       ; Top side
                     [:key, 2 0, 1/2 1]]
-
-                   [[:key, 0 0, 0 1]
-                    [:key, 0 0, -1/2 1]]
 
                    [[:key, 0 1, -1 -1]     ; Left side
                     [:key, 0 2, -1 1]]
 
                    [[:key, 0 3, -1 -1]
-                    [:thumb, 1 0, -1 1]]
+                    [:thumb, 1 0, -1 1]] 
 
-                   [[:thumb, 2 1, -1 1]    ; Front side
-                    [:thumb, 2 1, -1 -1]]
-
-                   [[:thumb, 0 1, 1 1]
-                    [:thumb, 0 1, 1 -1]]
-
-                   [[:key, 4 3, 0 -1]
-                    [:key, 4 3, -1 -1]]])
+                   [[:thumb, 0 1, 1 1]     ; Front side
+                    [:thumb, 0 1, 1 -1]]])
 
 (def ^:dynamic screw-boss-radius 11/2)
 (def screw-boss-height 8)
@@ -396,7 +386,7 @@
         RAR [0.79608 0.18431 0.16471]]
 
     [(cond                              ; keycap-family
-       (= [where, i j] [:thumb 0 1]) keycap-family-dsa-fanged
+       (= [where, i j] [:thumb 0 1]) keycap-family-dsa-concave
        (= [where, j] [:thumb, 0]) keycap-family-dsa-convex
        (= where :thumb) keycap-family-dsa-concave
 
@@ -1150,11 +1140,8 @@
     (key-place :main, i j, 0 0 0, shape)))
 
 (defn thumb-placed-shapes [shape]
-  (for [j (range 3)
-        i (case j
-            0 (range 4)
-            1 (range 3)
-            [1])]
+  (for [j (range (count thumb-shape))
+        i (range (nth thumb-shape j))]
     (key-place :thumb, i j, 0 0 0, shape)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
@@ -1285,49 +1272,19 @@
        (thumb-web 0 0 1 1))
 
       (triangle-hulls
-       (thumb-web 2 0 1 1)
+       (thumb-web 1 0 1 -1)
+       (thumb-web 0 0 1 -1)
+       (thumb-web 1 1 1 1)
+       (thumb-web 0 1 -1 1)
+       (thumb-web 1 1 1 -1)
+       (thumb-web 0 1 -1 -1))
+
+      (triangle-hulls
        (thumb-web 1 0 -1 1)
-       (thumb-web 2 0 1 -1)
        (thumb-web 1 0 -1 -1)
        (thumb-web 1 1 -1 1)
        (thumb-web 1 0 1 -1)
        (thumb-web 1 1 1 1))
-
-      (triangle-hulls
-       (thumb-web 0 0 1 -1 z)
-       (thumb-web 1 1 1 1)
-       (thumb-web 0 1 -1 1)
-       (thumb-web 1 1 1 -1)
-       (thumb-web 0 1 -1 -1)
-       (thumb-web 1 2 1 1)
-       (thumb-web 0 1 1 -1)
-       (thumb-web 1 2 1 -1))
-
-      (triangle-hulls
-       (thumb-web 2 1 -1 1)
-       (thumb-web 3 0 -1 -1)
-       (thumb-web 2 1 1 1)
-       (thumb-web 3 0 1 -1)
-       (thumb-web 2 0 -1 -1)
-       (thumb-web 3 0 1 1)
-       (thumb-web 2 0 -1 1))
-
-      (triangle-hulls
-       (thumb-web 2 0 1 -1)
-       (thumb-web 2 0 -1 -1)
-       (thumb-web 1 1 -1 1)
-       (thumb-web 2 1 1 1)
-       (thumb-web 1 1 -1 -1)
-       (thumb-web 2 1 1 -1)
-       (thumb-web 1 2 -1 1)
-       (thumb-web 2 1 -1 -1)
-       (thumb-web 1 2 -1 -1))
-
-      (triangle-hulls
-       (thumb-web 1 1 -1 -1)
-       (thumb-web 1 2 -1 1)
-       (thumb-web 1 1 1 -1)
-       (thumb-web 1 2 1 1))
 
       (when (place-key-at? [0 (row -2)])
         (triangle-hulls
@@ -1341,28 +1298,25 @@
       (triangle-hulls
        (thumb-web 0 1 -1 1)
        (thumb-web 0 1 1 1)
-       (thumb-web 0 0 1 -1 z)
+       (thumb-web 0 0 1 -1)
        (key-web 3 (row -1) -1 -1)
        (key-web 2 (row -1) -1 -1)
        (key-web 2 (row -1) 1 -1))
 
-      (triangle-hulls
-       (thumb-web 1 1 1 1)
-       (thumb-web 1 0 1 -1)
-       (thumb-web 0 0 1 -1 z)
-       (thumb-web 0 0 1 -1)
-       (key-web 2 (row -1) -1 -1)
-       (thumb-web 0 0 1 1)
-       (key-web 2 (row -1) -1 y)
-       (thumb-web 0 0 -1 1)
-       (key-web 1 (row -2) 1 -1)
-       (key-web 1 (row -2) -1 -1))
+      (triangle-hulls 
+        (key-web 1 (row -2) -1 -1)
+        (thumb-web 0 0 -1 1)
+        (key-web 1 (row -2) 1 -1)
+        (thumb-web 0 0 1 1)
+        (key-web 2 (row -1) -1 -1)
+        (thumb-web 0 0 1 -1))
 
       (triangle-hulls
-       (key-web 2 (row -1) -1 y)
+       (key-web 2 (row -1) -1 -1)
        (key-web 2 (row -1) -1 1)
        (key-web 1 (row -2) 1 -1)
-       (key-web 2 (row -2) -1 -1))))))
+       (key-web 2 (row -2) -1 -1))
+     ))))
 
 ;;;;;;;;;;
 ;; Case ;;
@@ -1425,19 +1379,15 @@
              [:thumb, 0 1, 1 1])
 
       (strip :thumb
-             [0 1, 1 1]
-             [0 1, 1 -1, 1/2 0 -2]
-             [1 2, 1 -1, 1 -1]
-             [1 2, -1 -1, -1 -1]
-             [2 1, -1 -1, -1/2 0 -2]
-             [2 1, -1 1, -1/2 -1 -2]
-             [3 0, -1 -1, -1/2 17/8 -5]
-             [3 0, -1 1, 1/2 -7/4 -3]
-             [3 0, -1 1, 7/4 -1/2 -3]
-             [3 0, 1 1, -3 1/2 -5]
-             [2 0, -1 1, 0 1]
-             [2 0, 1 1, 0 1]
-             [1 0, -1 1]))
+             [0 1, 1 1, 0 0]
+             [0 1, 1 -1, 0 0]
+             [0 1, -1 -1, 0 0]
+             [1 1, 1 -1, 0 0]
+             [1 1, -1 -1, 0 0]
+             [1 1, -1 1, 0 0]
+             [1 0, -1 -1, -2 -3]
+             [1 0, -1 1, 0 0]
+      ))
 
      (list
       (place [:thumb, 1 0, -1 1]
