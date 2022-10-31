@@ -1,5 +1,11 @@
 # The Lagrange keyboard
 
+## Changes
+- thumb cluster to 4 keys.
+- reduce radius into a more flatted version.
+
+
+
 ![The Lagrange keyboard](./doc/lagrange_keyboard.png?raw=true)
 
 The Lagrange is a configurable, split, handwired keyboard, designed
