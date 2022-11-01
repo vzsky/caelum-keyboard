@@ -31,9 +31,9 @@
 
 ;; General parameters.
 
-(def place-keycaps? true)
+(def place-keycaps? false)
 (def keys-depressed? false)
-(def place-keyswitches? true)
+(def place-keyswitches? false)
 (def place-pcb? false)
 (def draft? true)
 (def mock-threads? true)
@@ -68,14 +68,14 @@
 
 (def column-spacing #(case %
                        0 2
-                       1 0
+                       1 4
                        2 4
                        3 5
                        3))
 
 ;; Column and row rotations in units of keys.
 
-(def row-phase (constantly -8))
+(def row-phase (constantly -5))
 (def column-phase (fn [i] (+ -57/25 (cond
                                       (= i 2) -1/4
                                       (= i 3) -1/8
@@ -92,7 +92,7 @@
 
 (def column-height #(case %
                       (0 1) 0
-                      2 -4
+                      2 -2
                       3 0
                       3))
 
@@ -102,8 +102,8 @@
 
 ;; Palm key location tuning offsets, in mm.
 
-(def palm-key-offset [0 -2 -3])
-(def palm-key-rotation (/ π 5))
+(def palm-key-offset [0 -2 0])
+(def palm-key-rotation (/ π 6))
 
 ;; Key plate (i.e. switch mount) parameters.
 
@@ -121,39 +121,31 @@
 
 ;; Thumb section parameters.
 
-(def thumb-shape [2, 2])
+(def thumb-shape [2])
 
-(def thumb-offset [5 -12 1])  ; Tuning offsets for the whole thumb section, in mm.
+(def thumb-offset [3 -8 1])  ; Tuning offsets for the whole thumb section, in mm.
 
-(def thumb-radius 60)
+(def thumb-radius 130)
 (def thumb-slant 0.35)         ; The degree of downward slant.
-(def thumb-key-scale 1)      ; The scale of the top-inner key of the thumb cluster.
+(def thumb-key-scale 1)        ; The scale of the top-inner key of the thumb cluster.
 
 ;; Per-key phase along the baseline arc, in units of keys, as a pair
 ;; of numbers: initial phase and per-key phase increment.
 
 (defn thumb-key-phase [column row]
-  (case row 
-    0 (degrees 15 20)
-    1 (degrees 5 25)))
+  (degrees 5 10))
 
 ;; Per-key offset from the baseline arc, in mm.
 
 (defn thumb-key-offset [column row]
-  (case row
-    0 (case column
-      0 [0 -5 0]
-      1 [-5 -5 0])
-    1 (case column
-      0 [0 -30 -7]
-      1 [-12 -30 -7])))
+  (case column
+      0 [0 -5/2 -2]
+      1 [-1 -5 -1]))
 
 ;; Per-key vertical slope.
 
 (defn thumb-key-slope [column row]
-  (case row 
-    0 (degrees 12)
-    1 (degrees 30)))
+  (case column 0 (degrees 5) 1 (degrees 15)))
 
 ;; Height offset for the whole keyboard.
 
@@ -1262,60 +1254,19 @@
    (let [z (/ ((thumb-key-offset 0 1) 2) plate-thickness)
          y -5/16]
      (list
-      (triangle-hulls
-       (thumb-web 0 0 1 -1)
-       (thumb-web 1 0 1 -1)
-       (thumb-web 0 0 -1 -1)
-       (thumb-web 1 0 1 1)
-       (thumb-web 0 0 -1 1)
-       (thumb-web 0 0 -1 1)
-       (thumb-web 0 0 1 1))
+
+      ;; (when (place-key-at? [0 (row -2)])
+      ;;   (triangle-hulls
+      ;;    (key-web 1 (row -2) -1 -1)
+      ;;    (thumb-web 0 0 -1 1)
+      ;;    (key-web 0 (row -2) 1 -1)
+      ;;    (thumb-web 1 0 1 1)
+      ;;    (key-web 0 (row -2) -1 -1)
+      ;;    (thumb-web 1 0 -1 1)))
 
       (triangle-hulls
-       (thumb-web 1 0 1 -1)
-       (thumb-web 0 0 1 -1)
-       (thumb-web 1 1 1 1)
-       (thumb-web 0 1 -1 1)
-       (thumb-web 1 1 1 -1)
-       (thumb-web 0 1 -1 -1))
+        (key-web 0 0 -1 -1))
 
-      (triangle-hulls
-       (thumb-web 1 0 -1 1)
-       (thumb-web 1 0 -1 -1)
-       (thumb-web 1 1 -1 1)
-       (thumb-web 1 0 1 -1)
-       (thumb-web 1 1 1 1))
-
-      (when (place-key-at? [0 (row -2)])
-        (triangle-hulls
-         (key-web 1 (row -2) -1 -1)
-         (key-web 0 (row -2) 1 -1)
-         (thumb-web 0 0 -1 1)
-         (key-web 0 (row -2) -1 -1)
-         (thumb-web 1 0 1 1)
-         (thumb-web 1 0 -1 1)))
-
-      (triangle-hulls
-       (thumb-web 0 1 -1 1)
-       (thumb-web 0 1 1 1)
-       (thumb-web 0 0 1 -1)
-       (key-web 3 (row -1) -1 -1)
-       (key-web 2 (row -1) -1 -1)
-       (key-web 2 (row -1) 1 -1))
-
-      (triangle-hulls 
-        (key-web 1 (row -2) -1 -1)
-        (thumb-web 0 0 -1 1)
-        (key-web 1 (row -2) 1 -1)
-        (thumb-web 0 0 1 1)
-        (key-web 2 (row -1) -1 -1)
-        (thumb-web 0 0 1 -1))
-
-      (triangle-hulls
-       (key-web 2 (row -1) -1 -1)
-       (key-web 2 (row -1) -1 1)
-       (key-web 1 (row -2) 1 -1)
-       (key-web 2 (row -2) -1 -1))
      ))))
 
 ;;;;;;;;;;
@@ -1370,27 +1321,21 @@
              [(column -2) (row -2), -1 -1, 3 -4]
              [3 (row -1), 1 -1, 0 -3 -9/2]
              [3 (row -1), 0 -1, 4 -3 -9/2]
-             [3 (row -1), -1 -1]))
+             [3 (row -1), -1 -1, 2 -1 -5]))
 
      ;; Thumb walls
 
      (list*
-      (place [:front, 3 (row -1), -1 -1]
-             [:thumb, 0 1, 1 1])
+      (place [:front, 3 (row -1), -1 -1, 2 -1 -5]
+             [:thumb, 1 0, -1 -1, -2 -5 -10])
 
       (strip :thumb
-             [0 1, 1 1, 0 0]
-             [0 1, 1 -1, 0 0]
-             [0 1, -1 -1, 0 0]
-             [1 1, 1 -1, 0 0]
-             [1 1, -1 -1, 0 0]
-             [1 1, -1 1, 0 0]
-             [1 0, -1 -1, -2 -3]
-             [1 0, -1 1, 0 0]
+             [1 0, -1 -1, -2 -5 -10]
+             [1 0, -1 1, -1 -2 -9]
       ))
 
      (list
-      (place [:thumb, 1 0, -1 1]
+      (place [:thumb, 1 0, -1 1, -1 -2 -9]
              [:left, 0 (row -2), -1 -1]))
 
      ;; Left wall.  Stripping in reverse order is necessary for
@@ -1411,8 +1356,8 @@
 
   (let [discontinuous? true
         [xx yy zz] (if (and discontinuous? (< i 2))
-                     [-23/4 0 -65/4]
-                     [0 23/4 -13])
+                     [-5 0 -12]
+                     [0 5 -8])
 
         u (first (key-place :main, i j, x y 0))
 
