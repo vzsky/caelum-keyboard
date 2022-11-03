@@ -55,23 +55,31 @@
 
 (def row-radius 500)
 (def column-radius #(case %
-                      500))
+                      (0 1 2) 500
+                      (3 4 5) 350))
 
 ;; The spacing between rows, in mm, for each column and between
 ;; successive columns.
 
 (def row-spacing #(case %
-                    (0 1) 7/2
-                    2 13/4
-                    3 13/4
-                    9/2))
+                    (0 1) 5/2
+                    (2 3) 9/4
+                    (4 5) 5/2))
 
 (def column-spacing #(case %
                        0 2
                        1 4
-                       2 4
-                       3 5
-                       3))
+                       2 5/2
+                       3 5/2
+                       2))
+
+
+;; Column slant: rotation on the y-axis
+
+(def column-slant #(case %
+                    (2 3) (degrees -2)
+                    5 (degrees -4)
+                    0))
 
 ;; Column and row rotations in units of keys.
 
@@ -94,7 +102,8 @@
                       (0 1) 0
                       2 -2
                       3 0
-                      3))
+                      4 3
+                      5 3))
 
 ;; The key scale of the outer columns.
 
@@ -103,7 +112,7 @@
 ;; Palm key location tuning offsets, in mm.
 
 (def palm-key-offset [0 -2 0])
-(def palm-key-rotation (/ π 6))
+(def palm-key-rotation [(/ π 6) 0 0])
 
 ;; Key plate (i.e. switch mount) parameters.
 
@@ -149,7 +158,7 @@
 
 ;; Height offset for the whole keyboard.
 
-(def global-z-offset 20)
+(def global-z-offset 16)
 
 ;; Case-related parameters.
 
@@ -170,19 +179,19 @@
 
 (def screw-bosses [
   
-                   [[:key, 5 2, 1 -1]      ; Right side
+                   [[:key, 5 2, 1 -1]      
                     [:key, 5 3, 1 1]]
 
                    [[:key, 5 0, 1 1]
                     [:key, 5 0, 1 -1]]
 
-                   [[:key, 2 0, 0 1]       ; Top side
+                   [[:key, 2 0, 0 1]       
                     [:key, 2 0, 1/2 1]]
 
-                   [[:key, 0 1, -1 -1]     ; Left side
-                    [:key, 0 2, -1 1]]
+                   [[:key, 0 0, -1 -1]    
+                    [:key, 0 1, -1 1]]
 
-                   [[:thumb, 1 0, -1 -1]     ; Front side
+                   [[:thumb, 1 0, -1 -1]    
                     [:thumb, 1 0, -1 1]]])
 
 (def ^:dynamic screw-boss-radius 11/2)
@@ -1023,18 +1032,23 @@
 ;; calculate its position.
 
 (declare ^:dynamic rotate-x
+         ^:dynamic rotate-y
          ^:dynamic rotate-z
          ^:dynamic translate-xyz)
 
 (defn transform-or-calculate [transform?]
   (if transform?
     {#'rotate-x #(rotate %1 [1 0 0] %2)
+     #'rotate-y #(rotate %1 [0 1 0] %2)
      #'rotate-z #(rotate %1 [0 0 1] %2)
      #'translate-xyz translate}
 
     {#'rotate-x #(identity [(first %2)
                             (reduce + (map * %2 [0 (Math/cos %1) (- (Math/sin %1))]))
                             (reduce + (map * %2 [0 (Math/sin %1) (Math/cos %1)]))])
+     #'rotate-y #(identity [(reduce + (map * %2 [(Math/cos %1) 0 (Math/sin %1)]))
+                            (nth %2 1)
+                            (reduce + (map * %2 [(- (Math/sin %1)) 0 (Math/cos %1)]))])
      #'rotate-z #(identity [(reduce + (map * %2 [(Math/cos %1) (- (Math/sin %1)) 0]))
                             (reduce + (map * %2 [(Math/sin %1) (Math/cos %1) 0]))
                             (nth %2 2)])
@@ -1076,7 +1090,10 @@
                           (->> %
                                (translate-xyz palm-key-offset)
                                (translate-xyz [0 (* -1/2 plate-size) 0])
-                               (rotate-x palm-key-rotation)
+                               (rotate-y (- (column-slant (- column-count 1))))
+                               (rotate-x (nth palm-key-rotation 0))
+                               (rotate-y (nth palm-key-rotation 1))
+                               (rotate-z (nth palm-key-rotation 2))
                                (translate-xyz [0 (* 1/2 plate-size) 0]))
                           %)]
 
@@ -1088,6 +1105,8 @@
                (translate-xyz offset)
 
                maybe-flip
+
+               (rotate-y (column-slant i))
 
                (translate-xyz [0 0 (- (column-radius i))])
                (rotate-x (- θ))
@@ -1379,8 +1398,8 @@
 
   (let [discontinuous? true
         [xx yy zz] (if (and discontinuous? (< i 2))
-                     [-5 0 -12]
-                     [0 5 -8])
+                     [-5 0 -9]
+                     [0 5 -5])
 
         u (first (key-place :main, i j, x y 0))
 
@@ -1390,7 +1409,7 @@
 
         vv [(key-place :main, 0 0, -1 y z, [(if (neg? z) 10 0)
                                             (+ (* 1/2 (- 1 y) plate-size) dy)
-                                            -15])
+                                            -9])
             (key-place :main, 3 0, 1 y (* 5/13 z), [xx (+ (* 5/13 dy) yy) zz])
             (key-place :main, (column -1) 0, 1 y 0, [-1 -5/4 -13/4])]
 
@@ -1407,7 +1426,7 @@
   (let [offsets (map (fn [a b] (or a b))
                      [dx dy dz]
                      (case where
-                       :back [0 0 -15]
+                       :back [0 0 -9]
                        :right (case [j y]
                                 [0 1] [-1/4 -5/2 -5/2]
                                 [3 -1] [-3/8 3/2 -19/8]
@@ -1416,7 +1435,7 @@
                                 [-1/4 0 -5/2])
                        :left [0 (case [j y]
                                   [3 -1] 2
-                                  0) -15]
+                                  0) -9]
                        :front (if (= [i j, x y] [3 (row -1), -1 -1])
                                 [7 -5 -6]
                                 [0 1/2 (if (= i 4) -5 -5/2)])
