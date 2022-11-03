@@ -44,7 +44,7 @@
 (def interference-test-build? false)
 (def thumb-test-build? false)
 (def key-test-build? false)
-(def key-test-range [0 0, 4 6])
+(def key-test-range [0 0, 6 6])
 
 ;; Main section parameters.
 
@@ -145,7 +145,7 @@
 ;; Per-key vertical slope.
 
 (defn thumb-key-slope [column row]
-  (case column 0 (degrees 5) 1 (degrees 15)))
+  (case column 0 (degrees 8) 1 (degrees 15)))
 
 ;; Height offset for the whole keyboard.
 
@@ -182,11 +182,8 @@
                    [[:key, 0 1, -1 -1]     ; Left side
                     [:key, 0 2, -1 1]]
 
-                   [[:key, 0 3, -1 -1]
-                    [:thumb, 1 0, -1 1]] 
-
-                   [[:thumb, 0 1, 1 1]     ; Front side
-                    [:thumb, 0 1, 1 -1]]])
+                   [[:thumb, 1 0, -1 -1]     ; Front side
+                    [:thumb, 1 0, -1 1]]])
 
 (def ^:dynamic screw-boss-radius 11/2)
 (def screw-boss-height 8)
@@ -1255,18 +1252,44 @@
          y -5/16]
      (list
 
-      ;; (when (place-key-at? [0 (row -2)])
-      ;;   (triangle-hulls
-      ;;    (key-web 1 (row -2) -1 -1)
-      ;;    (thumb-web 0 0 -1 1)
-      ;;    (key-web 0 (row -2) 1 -1)
-      ;;    (thumb-web 1 0 1 1)
-      ;;    (key-web 0 (row -2) -1 -1)
-      ;;    (thumb-web 1 0 -1 1)))
+      (triangle-hulls 
+       (thumb-web 1 0 -1 -1)
+       (thumb-web 1 0 1 -1)
+       (key-web 3 (row -1) -1 -1)
+       (thumb-web 1 0 1 -1)
+       (key-web 2 (row -1) 1 -1)
+       (thumb-web 0 0 1 -1)
+       (key-web 2 (row -1) -1 -1))
+
+      (triangle-hulls 
+        (thumb-web 0 0 1 -1)
+        (thumb-web 1 0 1 -1)
+        (thumb-web 0 0 -1 -1)
+        (thumb-web 1 0 1 1)
+        (thumb-web 0 0 -1 1))
+
+      (when (place-key-at? [0 (row -2)])
+        (triangle-hulls
+         (key-web 1 (row -2) -1 -1)
+         (thumb-web 0 0 -1 1)
+         (key-web 0 (row -2) 1 -1)
+         (thumb-web 1 0 1 1)
+         (key-web 0 (row -2) -1 -1)
+         (thumb-web 1 0 -1 1)))
 
       (triangle-hulls
-        (key-web 0 0 -1 -1))
+        (key-web 1 (row -2) -1 -1)
+        (thumb-web 0 0 -1 1)
+        (key-web 1 (row -2) 1 -1)
+        (thumb-web 0 0 1 1))
 
+      (triangle-hulls
+        (key-web 2 (row -2) -1 -1)
+        (key-web 1 (row -2) 1 -1)
+        (key-web 2 (row -1) -1 1)
+        (thumb-web 0 0 1 1)
+        (key-web 2 (row -1) -1 -1)
+        (thumb-web 0 0 1 -1))
      ))))
 
 ;;;;;;;;;;
@@ -1327,15 +1350,15 @@
 
      (list*
       (place [:front, 3 (row -1), -1 -1, 2 -1 -5]
-             [:thumb, 1 0, -1 -1, -2 -5 -10])
+             [:thumb, 1 0, -1 -1, -2 -3 -5])
 
       (strip :thumb
-             [1 0, -1 -1, -2 -5 -10]
-             [1 0, -1 1, -1 -2 -9]
+             [1 0, -1 -1, -2 -3 -5]
+             [1 0, -1 1, -1 -1 -5]
       ))
 
      (list
-      (place [:thumb, 1 0, -1 1, -1 -2 -9]
+      (place [:thumb, 1 0, -1 1, -1 -1 -5]
              [:left, 0 (row -2), -1 -1]))
 
      ;; Left wall.  Stripping in reverse order is necessary for
