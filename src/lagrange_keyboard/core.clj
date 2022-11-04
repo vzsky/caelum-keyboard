@@ -62,21 +62,22 @@
 ;; successive columns.
 
 (def row-spacing #(case %
-                    (0 1) 5/2
-                    (2 3) 9/4
-                    (4 5) 5/2))
+                    (0 1) 2
+                    (2 3) 2
+                    (4 5) 2))
 
 (def column-spacing #(case %
-                       0 2
-                       1 4
-                       2 5/2
-                       3 5/2
-                       2))
+                       0 3/2
+                       1 5/2
+                       2 2
+                       3 2
+                       3/2))
 
 
 ;; Column slant: rotation on the y-axis
 
 (def column-slant #(case %
+                    0 (degrees 5)
                     (2 3) (degrees -2)
                     5 (degrees -4)
                     0))
@@ -99,11 +100,12 @@
                       -8))
 
 (def column-height #(case %
-                      (0 1) 0
+                      0 2
+                      1 0
                       2 -2
                       3 0
                       4 3
-                      5 3))
+                      5 5))
 
 ;; The key scale of the outer columns.
 
