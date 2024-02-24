@@ -203,7 +203,7 @@
 
 (def cover-thickness 4)
 (def cover-countersink-diameter 9/2)       ; Inner diameter of countersunk hole.
-(def cover-countersink-height 2.4)         ; Head height.
+(def cover-countersink-height 0)           ; Head height. 2.4 -> 0 for Laser Cutter
 (def cover-countersink-angle (degrees 90)) ; Head angle.
 (def cover-fastener-thread [6.5 0.75 8])   ; Cover mount thread diameter, pitch
                                            ; and length in mm.
